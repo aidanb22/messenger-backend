@@ -114,6 +114,14 @@ func bsonUnmarshall(colName string, bsonData interface{}) (data dbModel, err err
 		tm := messageModel{}
 		err = bson.Unmarshal(bData, &tm)
 		return &tm, nil
+	case "group_memberships":
+		bData, err := bsonMarshall(bsonData)
+		if err != nil {
+			return nil, err
+		}
+		gmm := groupMembershipModel{}
+		err = bson.Unmarshal(bData, &gmm)
+		return &gmm, nil
 	}
 	return nil, errors.New("invalid test collection type")
 }
@@ -845,6 +853,8 @@ func (coll *testMongoCollection) Find(ctx context.Context, filter interface{}, o
 func (coll *testMongoCollection) FindOne(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) *mongo.SingleResult {
 	var rawResult []byte
 	fmt.Println("\n\nfilter", filter, ctx)
+	fmt.Println("\n\npreCollCtx", coll.ctx)
+
 	coll.ctx = ctx
 	fmt.Println("\n--->FIND ONE: ", filter)
 	filterDoc, err := coll.unmarshallBSON(filter)
@@ -926,6 +936,12 @@ func newTestMongoDatabase(databaseName string) (*testMongoDatabase, error) {
 		return &testMongoDatabase{}, err
 	}
 	testsColls = append(testsColls, testMessageCollection)
+	testGroupMembershipsCollection, err := newTestMongoCollection("group_memberships")
+	if err != nil {
+		fmt.Println("\nCOLLECTION INIT TASK ERROR: ", err.Error())
+		return &testMongoDatabase{}, err
+	}
+	testsColls = append(testsColls, testMessageCollection, testGroupMembershipsCollection)
 	return &testMongoDatabase{
 		name:            databaseName,
 		testCollections: testsColls,

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"os"
 	"testing"
@@ -121,8 +122,6 @@ func TestUpdatePassword(t *testing.T) {
 func TestModifyUser(t *testing.T) {
 	// Test Setup
 	setup()
-	createTestGroup(ta, 1)
-	createTestGroup(ta, 2)
 	createTestUser(ta, 1)
 	authResponse := signIn(ta, os.Getenv("ROOT_EMAIL"), os.Getenv("ROOT_PASSWORD"))
 	authToken := authResponse.Header().Get("Auth-Token")
@@ -136,7 +135,8 @@ func TestModifyUser(t *testing.T) {
 	reqUpdate.Header.Add("Auth-Token", authToken)
 	updateTestResponse := executeRequest(ta, reqUpdate)
 	checkResponseCode(t, http.StatusAccepted, updateTestResponse.Code)
-	// Attempt to test Modified user doc by loggin in with new password/username
+	// Attempt to test Modified user doc by login in with new password/username
+	fmt.Println(updateTestResponse)
 	testResponseOKAuth := signIn(ta, "new_test@email.com", "newUserPass")
 	// Clean database and do final status check
 	checkResponseCode(t, http.StatusOK, testResponseOKAuth.Code)
@@ -275,6 +275,7 @@ func TestCreateGroup(t *testing.T) {
 	authToken := authResponse.Header().Get("Auth-Token")
 	// Create new group test
 	payload := getTestGroupPayload("CREATE")
+	fmt.Println("\n\nbody", string(payload))
 	req, err := http.NewRequest("POST", "/groups", bytes.NewBuffer(payload))
 	if err != nil {
 		t.Errorf("TestCreateGroup() error = %v", err)
@@ -282,6 +283,8 @@ func TestCreateGroup(t *testing.T) {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Auth-Token", authToken)
 	testResponse := executeRequest(ta, req)
+	fmt.Println("\n\ntest_response", testResponse)
+
 	// Clean database and do final status check
 	checkResponseCode(t, http.StatusCreated, testResponse.Code)
 }
@@ -378,7 +381,7 @@ func TestCreateTask(t *testing.T) {
 	authToken := authResponse.Header().Get("Auth-Token")
 	// Create new todos test
 	payload := getTestTaskPayload("CREATE")
-	req, err := http.NewRequest("POST", "/tasks", bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", "/messages", bytes.NewBuffer(payload))
 	if err != nil {
 		t.Errorf("TestCreateTask() error = %v", err)
 	}

@@ -127,22 +127,19 @@ func getTestGroupModels(root bool) []*groupModel {
 	var gm *groupModel
 	if root {
 		gm, _ = newGroupModel(&models.Group{
-			Id:        "000000000000000000000001",
-			Name:      "test1",
-			RootAdmin: true,
+			Id:   "000000000000000000000001",
+			Name: "test1",
 		})
 		gms = append(gms, gm)
 	}
 	gm, _ = newGroupModel(&models.Group{
-		Id:        "000000000000000000000002",
-		Name:      "test2",
-		RootAdmin: false,
+		Id:   "000000000000000000000002",
+		Name: "test2",
 	})
 	gms = append(gms, gm)
 	gm, _ = newGroupModel(&models.Group{
-		Id:        "000000000000000000000003",
-		Name:      "test3",
-		RootAdmin: false,
+		Id:   "000000000000000000000003",
+		Name: "test3",
 	})
 	gms = append(gms, gm)
 	return gms
@@ -156,8 +153,6 @@ func getTestUsersModels(root bool) []*userModel {
 			Id:        "000000000000000000000011",
 			Email:     "test1@email.com",
 			Password:  "abc123",
-			GroupId:   "000000000000000000000001",
-			Role:      "admin",
 			RootAdmin: true,
 		})
 		gms = append(gms, gm)
@@ -166,8 +161,6 @@ func getTestUsersModels(root bool) []*userModel {
 		Id:        "000000000000000000000012",
 		Email:     "test2@email.com",
 		Password:  "abc123",
-		GroupId:   "000000000000000000000002",
-		Role:      "member",
 		RootAdmin: false,
 	})
 	gms = append(gms, gm)
@@ -175,8 +168,6 @@ func getTestUsersModels(root bool) []*userModel {
 		Id:        "000000000000000000000013",
 		Email:     "test3@email.com",
 		Password:  "abc123",
-		GroupId:   "000000000000000000000002",
-		Role:      "member",
 		RootAdmin: false,
 	})
 	gms = append(gms, gm)
@@ -853,8 +844,9 @@ func (coll *testMongoCollection) Find(ctx context.Context, filter interface{}, o
 // FindOne returns a single test mongo document
 func (coll *testMongoCollection) FindOne(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) *mongo.SingleResult {
 	var rawResult []byte
+	fmt.Println("\n\nfilter", filter, ctx)
 	coll.ctx = ctx
-	fmt.Println("\n--->FIND ONE: ", filter, opts)
+	fmt.Println("\n--->FIND ONE: ", filter)
 	filterDoc, err := coll.unmarshallBSON(filter)
 	if err == nil {
 		reDocs, err := coll.find(filterDoc)
@@ -1069,6 +1061,33 @@ func (db *testDBClient) NewDBHandler(collectionName string) *DBHandler[dbModel] 
 func (db *testDBClient) NewUserHandler() *DBHandler[*userModel] {
 	col := db.GetCollection("users")
 	return &DBHandler[*userModel]{
+		db:         db,
+		collection: col,
+	}
+}
+
+// NewUserHandler returns a new DBHandler users interface
+func (db *testDBClient) NewGroupMembershipHandler() *DBHandler[*groupMembershipModel] {
+	col := db.GetCollection("group_memberships")
+	return &DBHandler[*groupMembershipModel]{
+		db:         db,
+		collection: col,
+	}
+}
+
+// NewUserHandler returns a new DBHandler users interface
+func (db *testDBClient) NewContactHandler() *DBHandler[*contactModel] {
+	col := db.GetCollection("contacts")
+	return &DBHandler[*contactModel]{
+		db:         db,
+		collection: col,
+	}
+}
+
+// NewUserHandler returns a new DBHandler users interface
+func (db *testDBClient) NewConversationHandler() *DBHandler[*conversationModel] {
+	col := db.GetCollection("conversations")
+	return &DBHandler[*conversationModel]{
 		db:         db,
 		collection: col,
 	}

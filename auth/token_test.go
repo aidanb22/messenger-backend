@@ -18,14 +18,14 @@ func Test_initUserToken(t *testing.T) {
 		// Here we're declaring each unit test input and output data as defined before
 		{
 			"success",
-			&TokenData{UserId: "000000000000000000000001", GroupId: "000000000000000000000011", Role: "member", RootAdmin: false},
+			&TokenData{UserId: "000000000000000000000001", RootAdmin: false},
 			false,
-			&models.User{Id: "000000000000000000000001", GroupId: "000000000000000000000011", Role: "member", RootAdmin: false},
+			&models.User{Id: "000000000000000000000001", RootAdmin: false},
 		},
 		{"invalid user",
 			&TokenData{},
 			true,
-			&models.User{Id: "000000000000000000000000", GroupId: "000000000000000000000012", Role: "member", RootAdmin: false},
+			&models.User{Id: "000000000000000000000000", RootAdmin: false},
 		},
 	}
 	// Iterating over the previous test slice
@@ -59,21 +59,21 @@ func Test_createToken(t *testing.T) {
 			time.Now().Add(time.Hour * 1).Unix(),
 			"",
 			false,
-			&TokenData{UserId: "000000000000000000000001", GroupId: "000000000000000000000011", Role: "member", RootAdmin: false},
+			&TokenData{UserId: "000000000000000000000001", RootAdmin: false},
 		},
 		{
 			"missing claims",
 			time.Now().Add(time.Hour * 1).Unix(),
 			"1",
 			true,
-			&TokenData{UserId: "", GroupId: "000000000000000000000011", Role: "member", RootAdmin: false},
+			&TokenData{UserId: "", RootAdmin: false},
 		},
 		{
 			"expiration time of 0",
 			0,
 			"1",
 			true,
-			&TokenData{UserId: "", GroupId: "000000000000000000000011", Role: "member", RootAdmin: false},
+			&TokenData{UserId: "", RootAdmin: false},
 		},
 	}
 	// Iterating over the previous test slice
@@ -105,16 +105,16 @@ func Test_decodeToken(t *testing.T) {
 		{
 			"success",
 			time.Now().Add(time.Hour * 1).Unix(),
-			&TokenData{UserId: "000000000000000000000001", GroupId: "000000000000000000000011", Role: "member", RootAdmin: false},
+			&TokenData{UserId: "000000000000000000000001", RootAdmin: false},
 			false,
-			&TokenData{UserId: "000000000000000000000001", GroupId: "000000000000000000000011", Role: "member", RootAdmin: false},
+			&TokenData{UserId: "000000000000000000000001", RootAdmin: false},
 		},
 		{
 			"expired token",
 			time.Now().Add(time.Second * 1).Unix(),
 			&TokenData{},
 			true,
-			&TokenData{UserId: "000000000000000000000001", GroupId: "000000000000000000000011", Role: "member", RootAdmin: false},
+			&TokenData{UserId: "000000000000000000000001", RootAdmin: false},
 		},
 	}
 	// Iterating over the previous test slice

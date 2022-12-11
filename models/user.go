@@ -9,18 +9,16 @@ import (
 
 // User is a root struct that is used to store the json encoded data for/from a mongodb user doc.
 type User struct {
-	Id           string    `json:"id,omitempty"`
-	Username     string    `json:"username,omitempty"`
-	Password     string    `json:"password,omitempty"`
-	FirstName    string    `json:"firstname,omitempty"`
-	LastName     string    `json:"lastname,omitempty"`
-	Email        string    `json:"email,omitempty"`
-	Role         string    `json:"role,omitempty"`
-	RootAdmin    bool      `json:"root_admin,omitempty"`
-	GroupId      string    `json:"group_id,omitempty"`
-	LastModified time.Time `json:"last_modified,omitempty"`
-	CreatedAt    time.Time `json:"created_at,omitempty"`
-	DeletedAt    time.Time `json:"deleted_at,omitempty"`
+	Id         string    `json:"_id,omitempty"`
+	Username   string    `json:"username,omitempty"`
+	Password   string    `json:"password,omitempty"`
+	Email      string    `json:"email,omitempty"`
+	Phone      string    `json:"phone,omitempty"`
+	ImageId    string    `json:"image_id,omitempty"`
+	RootAdmin  bool      `json:"root_admin,omitempty"`
+	LastActive time.Time `json:"last_active,omitempty"`
+	CreatedAt  time.Time `json:"created_at,omitempty"`
+	DeletedAt  time.Time `json:"deleted_at,omitempty"`
 }
 
 // checkID determines whether a specified ID is set or not
@@ -30,8 +28,8 @@ func (g *User) checkID(chkId string) bool {
 		if g.Id == "" || g.Id == "000000000000000000000000" {
 			return false
 		}
-	case "group_id":
-		if g.GroupId == "" || g.GroupId == "000000000000000000000000" {
+	case "image_id":
+		if g.ImageId == "" || g.ImageId == "000000000000000000000000" {
 			return false
 		}
 	}
@@ -73,9 +71,6 @@ func (g *User) Validate(valCase string) (err error) {
 		if !g.checkID("group_id") {
 			missingFields = append(missingFields, "group_id")
 		}
-		if g.Role == "" {
-			missingFields = append(missingFields, "role")
-		}
 	case "create":
 		if g.Username == "" {
 			missingFields = append(missingFields, "id")
@@ -86,9 +81,14 @@ func (g *User) Validate(valCase string) (err error) {
 		if g.Password == "" {
 			missingFields = append(missingFields, "password")
 		}
+		if g.Phone == "" {
+			missingFields = append(missingFields, "phone")
+		}
+		/* //todo: dont think we need this because we dont have group id
 		if !g.checkID("group_id") {
 			missingFields = append(missingFields, "group_id")
 		}
+		*/
 	case "update":
 		if !g.checkID("id") && g.Email == "" {
 			missingFields = append(missingFields, "id")
@@ -120,19 +120,16 @@ func (g *User) BuildUpdate(curUser *User) {
 	if len(g.Username) == 0 {
 		g.Username = curUser.Username
 	}
-	if len(g.FirstName) == 0 {
-		g.FirstName = curUser.FirstName
-	}
-	if len(g.LastName) == 0 {
-		g.LastName = curUser.LastName
+	if len(g.Password) == 0 {
+		g.Password = curUser.Password
 	}
 	if len(g.Email) == 0 {
 		g.Email = curUser.Email
 	}
-	if len(g.GroupId) == 0 {
-		g.GroupId = curUser.GroupId
+	if len(g.Id) == 0 {
+		g.Id = curUser.Id
 	}
-	if len(g.Role) == 0 {
-		g.Role = curUser.Role
+	if g.RootAdmin {
+		g.RootAdmin = curUser.RootAdmin
 	}
 }

@@ -19,9 +19,8 @@ type blacklistModel struct {
 // newBlacklistModel initializes a new pointer to a blacklistModel struct from a pointer to a JSON Blacklist struct
 func newBlacklistModel(bl *models.Blacklist) (bm *blacklistModel, err error) {
 	bm = &blacklistModel{
-		AuthToken:    bl.AuthToken,
-		LastModified: bl.LastModified,
-		CreatedAt:    bl.CreatedAt,
+		AuthToken: bl.AuthToken,
+		CreatedAt: bl.CreatedAt,
 	}
 	if bl.Id != "" && bl.Id != "000000000000000000000000" {
 		bm.Id, err = primitive.ObjectIDFromHex(bl.Id)
@@ -136,9 +135,8 @@ func (b *blacklistModel) bsonUpdate() (doc bson.D, err error) {
 // toRoot creates and return a new pointer to a Blacklist JSON struct from a pointer to a BSON blacklistModel
 func (b *blacklistModel) toRoot() *models.Blacklist {
 	return &models.Blacklist{
-		Id:           b.Id.Hex(),
-		AuthToken:    b.AuthToken,
-		LastModified: b.LastModified,
-		CreatedAt:    b.CreatedAt,
+		Id:        b.Id.Hex(),
+		AuthToken: b.AuthToken,
+		CreatedAt: b.CreatedAt,
 	}
 }

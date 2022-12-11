@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// TaskService is used by the app to manage all Task related controllers and functionality
+// MessageService is used by the app to manage all Task related controllers and functionality
 type MessageService struct {
 	collection     DBCollection
 	db             DBClient
@@ -16,7 +16,7 @@ type MessageService struct {
 	groupHandler   *DBHandler[*groupModel]
 }
 
-// NewTaskService is an exported function used to initialize a new TaskService struct
+// NewMessageService is an exported function used to initialize a new MessageService struct
 func NewMessageService(db DBClient, tHandler *DBHandler[*messageModel], uHandler *DBHandler[*userModel], gHandler *DBHandler[*groupModel]) *MessageService {
 	collection := db.GetCollection("messages")
 	return &MessageService{collection, db, tHandler, uHandler, gHandler}
@@ -53,9 +53,6 @@ func (p *MessageService) checkMessageGroups(g *groupModel, u *userModel) error {
 				return errors.New("invalid user id")
 			}
 		}
-	}
-	if g.Id != u.GroupId {
-		return errors.New("task user is not in task group")
 	}
 	return nil
 }
@@ -104,9 +101,9 @@ func (p *MessageService) MessageCreate(g *models.Message) (*models.Message, erro
 		return nil, err
 	}
 	if gm.Group {
-		err = p.checkMessageGroups(&groupModel{Id: gm.ReceiverID}, &userModel{Id: gm.SenderID})
+		err = p.checkMessageGroups(&groupModel{Id: gm.ReceiverId}, &userModel{Id: gm.SenderId})
 	} else {
-		err = p.checkMessageUsers(&userModel{Id: gm.ReceiverID}, &userModel{Id: gm.SenderID})
+		err = p.checkMessageUsers(&userModel{Id: gm.ReceiverId}, &userModel{Id: gm.SenderId})
 	}
 	if err != nil {
 		return nil, err

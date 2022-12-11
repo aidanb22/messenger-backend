@@ -23,17 +23,9 @@ func NewTokenService(uService UserService, gService GroupService, bService Black
 // verifyTokenUser verifies Token's User
 func (a *TokenService) verifyTokenUser(decodedToken *auth.TokenData) (bool, string) {
 	tUser := decodedToken.ToUser()
-	checkUser, err := a.uService.UserFind(tUser)
+	_, err := a.uService.UserFind(tUser)
 	if err != nil {
 		return false, err.Error()
-	}
-	checkGroup, err := a.gService.GroupFind(&models.Group{Id: tUser.GroupId})
-	if err != nil {
-		return false, err.Error()
-	}
-	// validate the Group id of the User and the associated User's Group
-	if checkUser.GroupId != checkGroup.Id {
-		return false, "Incorrect group id"
 	}
 	return true, "No Error"
 }
@@ -55,7 +47,7 @@ func (a *TokenService) tokenVerifyMiddleWare(roleType string, next http.HandlerF
 	}
 	verified, verifyMsg := a.verifyTokenUser(decodedToken)
 	if verified {
-		if roleType == "Admin" && decodedToken.Role == "admin" {
+		if roleType == "Admin" && decodedToken.RootAdmin {
 			next.ServeHTTP(w, r)
 		} else if roleType != "Admin" {
 			next.ServeHTTP(w, r)

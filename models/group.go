@@ -10,7 +10,7 @@ import (
 type Group struct {
 	Id           string    `json:"id,omitempty"`
 	Name         string    `json:"name,omitempty"`
-	RootAdmin    bool      `json:"root_admin,omitempty"`
+	Visibility   bool      `json:"visibility,omitempty"` //invite only, visible for Member requests
 	LastModified time.Time `json:"last_modified,omitempty"`
 	CreatedAt    time.Time `json:"created_at,omitempty"`
 	DeletedAt    time.Time `json:"deleted_at,omitempty"`

@@ -8,15 +8,17 @@ import (
 
 // Message is a root struct that is used to store the json encoded data for/from a mongodb group doc.
 type Message struct {
-	Id           string    `json:"id,omitempty"`
-	SenderID     string    `json:"sender_id,omitempty"`
-	ReceiverID   string    `json:"receiver_id,omitempty"`
-	Content      string    `json:"content,omitempty"`
-	ContentType  string    `json:"contentType,omitempty"`
-	Group        bool      `json:"group,omitempty"`
-	LastModified time.Time `json:"last_modified,omitempty"`
-	CreatedAt    time.Time `json:"created_at,omitempty"`
-	DeletedAt    time.Time `json:"deleted_at,omitempty"`
+	Id             string    `json:"id,omitempty"`
+	ConversationID string    `json:"conversation_id,omitempty"`
+	SenderID       string    `json:"sender_id,omitempty"`
+	ReceiverID     string    `json:"receiver_id,omitempty"`
+	Content        string    `json:"content,omitempty"`
+	ContentType    string    `json:"contentType,omitempty"`
+	Group          bool      `json:"group,omitempty"`
+	FileIds        string    `json:"file_ids"`
+	UpdatedAt      time.Time `json:"updated_at,omitempty"`
+	CreatedAt      time.Time `json:"created_at,omitempty"`
+	DeletedAt      time.Time `json:"deleted_at,omitempty"`
 }
 
 // checkID determines whether a specified ID is set or not

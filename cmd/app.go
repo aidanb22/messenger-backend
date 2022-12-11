@@ -43,11 +43,19 @@ func (a *App) Initialize() error {
 	uHandler := a.db.NewUserHandler()
 	blHandler := a.db.NewBlacklistHandler()
 	tHandler := a.db.NewMessageHandler()
+	gmHandler := a.db.NewGroupMembershipHandler()
+	cHandler := a.db.NewConversationHandler()
+	coHandler := a.db.NewContactHandler()
+
 	gService := database.NewGroupService(a.db, gHandler)
 	uService := database.NewUserService(a.db, uHandler, gHandler)
 	bService := database.NewBlacklistService(a.db, blHandler)
+	gmService := database.NewGroupMembershipService(a.db, gmHandler)
 	tService := services.NewTokenService(uService, gService, bService)
 	ttService := database.NewMessageService(a.db, tHandler, uHandler, gHandler)
+	cService := database.NewConversationService(a.db, cHandler)
+	coService := database.NewContactService(a.db, coHandler)
+
 	// 4) Create RootAdmin user if database is empty
 	var group models.Group
 	var adminUser models.User
@@ -59,25 +67,20 @@ func (a *App) Initialize() error {
 		return err
 	}
 	if docCount == 0 {
-		group.RootAdmin = true
 		group.Id = utilities.GenerateObjectID()
-		adminGroup, err := gService.GroupCreate(&group)
 		if err != nil {
 			return err
 		}
 		adminUser.Username = os.Getenv("ROOT_ADMIN")
 		adminUser.Email = os.Getenv("ROOT_EMAIL")
 		adminUser.Password = os.Getenv("ROOT_PASSWORD")
-		adminUser.FirstName = "root"
-		adminUser.LastName = "admin"
-		adminUser.GroupId = adminGroup.Id
 		_, err = uService.UserCreate(&adminUser)
 		if err != nil {
 			return err
 		}
 	}
 	// 5) Initialize Server
-	a.server = server.NewServer(uService, gService, ttService, tService)
+	a.server = server.NewServer(uService, gService, ttService, tService, gmService, cService, coService)
 	return nil
 }
 

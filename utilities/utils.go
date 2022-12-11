@@ -60,3 +60,18 @@ func RespondWithError(w http.ResponseWriter, status int, error JWTError) {
 		panic(err)
 	}
 }
+
+func CheckObjectID(hexID string) bool {
+	if hexID == "" || hexID == "000000000000000000000000" {
+		return false
+	}
+	return true
+}
+func IfStrInSlice(s string, sl []string) bool {
+	for _, i := range sl {
+		if i == s {
+			return true
+		}
+	}
+	return false
+}

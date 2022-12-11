@@ -39,13 +39,11 @@ func createTestGroup(ta App, groupType int) *models.Group {
 	if groupType == 1 {
 		group.Id = "000000000000000000000002"
 		group.Name = "test2"
-		group.RootAdmin = false
 		group.LastModified = time.Now().UTC()
 		group.CreatedAt = time.Now().UTC()
 	} else {
 		group.Id = "000000000000000000000003"
 		group.Name = "test3"
-		group.RootAdmin = false
 		group.LastModified = time.Now().UTC()
 		group.CreatedAt = time.Now().UTC()
 	}
@@ -63,25 +61,17 @@ func createTestUser(ta App, userType int) *models.User {
 		user.Id = "000000000000000000000012"
 		user.Username = "test_user"
 		user.Password = "abc123"
-		user.FirstName = "Jill"
-		user.LastName = "Tester"
 		user.Email = "test2@email.com"
-		user.Role = "member"
 		user.RootAdmin = false
-		user.GroupId = "000000000000000000000002"
-		user.LastModified = time.Now().UTC()
+		user.LastActive = time.Now().UTC()
 		user.CreatedAt = time.Now().UTC()
 	} else {
 		user.Id = "000000000000000000000013"
 		user.Username = "test_user2"
 		user.Password = "abc123"
-		user.FirstName = "Bill"
-		user.LastName = "Quality"
 		user.Email = "test3@email.com.com"
-		user.Role = "member"
 		user.RootAdmin = false
-		user.GroupId = "000000000000000000000003"
-		user.LastModified = time.Now().UTC()
+		user.LastActive = time.Now().UTC()
 		user.CreatedAt = time.Now().UTC()
 	}
 	_, err := ta.server.UserService.UserDocInsert(&user)
@@ -103,7 +93,7 @@ func createTestMessage(ta App, messageType int) *models.Message {
 		message.Group = false
 		message.CreatedAt = time.Now()
 		message.Content = "Content"
-		message.LastModified = now.UTC()
+		message.UpdatedAt = now.UTC()
 		message.CreatedAt = now.UTC()
 	} else {
 		message.Id = "000000000000000000000022"
@@ -113,9 +103,9 @@ func createTestMessage(ta App, messageType int) *models.Message {
 		message.Group = false
 		message.CreatedAt = time.Now()
 		message.Content = "Content"
-		message.LastModified = now.UTC()
+		message.UpdatedAt = now.UTC()
 	}
-	_, err := ta.server.TaskService.MessageDocInsert(&message)
+	_, err := ta.server.MessageService.MessageDocInsert(&message)
 	if err != nil {
 		panic(err)
 	}
@@ -126,9 +116,9 @@ func createTestMessage(ta App, messageType int) *models.Message {
 func getTestUserPayload(tCase string) []byte {
 	switch tCase {
 	case "CREATE":
-		return []byte(`{"username":"test_user","password":"abc123","firstname":"test","lastname":"user","email":"test2@email.com","group_id":"000000000000000000000002","role":"member"}`)
+		return []byte(`{"username":"test_user","password":"abc123","firstname":"test","lastname":"user","email":"test2@email.com"}`)
 	case "UPDATE":
-		return []byte(`{"username":"newUserName","password":"newUserPass","email":"new_test@email.com","group_id":"000000000000000000000003","role":"member"}`)
+		return []byte(`{"username":"newUserName","password":"newUserPass","email":"new_test@email.com"}`)
 	}
 	return nil
 }
@@ -178,7 +168,7 @@ func getTestTaskPayload(tCase string) []byte {
 		tMessage.Group = false
 		tMessage.CreatedAt = time.Now()
 		tMessage.Content = "Content"
-		tMessage.LastModified = now.UTC()
+		tMessage.UpdatedAt = now.UTC()
 		b, _ := json.Marshal(tMessage)
 		return b
 	case "UPDATE":
@@ -190,7 +180,7 @@ func getTestTaskPayload(tCase string) []byte {
 		tMessage.Group = false
 		tMessage.CreatedAt = time.Now()
 		tMessage.Content = "Content"
-		tMessage.LastModified = now.UTC()
+		tMessage.UpdatedAt = now.UTC()
 		b, _ := json.Marshal(tMessage)
 		return b
 

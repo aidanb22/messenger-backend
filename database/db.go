@@ -36,6 +36,9 @@ type DBClient interface {
 	NewGroupHandler() *DBHandler[*groupModel]
 	NewBlacklistHandler() *DBHandler[*blacklistModel]
 	NewMessageHandler() *DBHandler[*messageModel]
+	NewGroupMembershipHandler() *DBHandler[*groupMembershipModel]
+	NewConversationHandler() *DBHandler[*conversationModel]
+	NewContactHandler() *DBHandler[*contactModel]
 }
 
 // DBCursor is an abstraction of the dbClient and testDBClient types
@@ -155,6 +158,27 @@ func (db *dbClient) NewMessageHandler() *DBHandler[*messageModel] {
 		collection: col,
 	}
 }
+func (db *dbClient) NewGroupMembershipHandler() *DBHandler[*groupMembershipModel] {
+	col := db.GetCollection("group_messages")
+	return &DBHandler[*groupMembershipModel]{
+		db:         db,
+		collection: col,
+	}
+}
+func (db *dbClient) NewConversationHandler() *DBHandler[*conversationModel] {
+	col := db.GetCollection("conversations")
+	return &DBHandler[*conversationModel]{
+		db:         db,
+		collection: col,
+	}
+}
+func (db *dbClient) NewContactHandler() *DBHandler[*contactModel] {
+	col := db.GetCollection("contact")
+	return &DBHandler[*contactModel]{
+		db:         db,
+		collection: col,
+	}
+}
 
 // DBHandler is a Generic type struct for organizing dbModel methods
 type DBHandler[T dbModel] struct {
@@ -165,13 +189,18 @@ type DBHandler[T dbModel] struct {
 // FindOne is used to get a dbModel from the db with custom filter
 func (h *DBHandler[T]) FindOne(filter T) (T, error) {
 	var m T
+	fmt.Println("\n\nfilterA", filter)
+
 	f, err := filter.bsonFilter()
+	fmt.Println("\n\nfilterEnd", f, err)
 	if err != nil {
 		return filter, err
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+	fmt.Println("\n\nstartFind", f)
 	err = h.collection.FindOne(ctx, f).Decode(&m)
+	fmt.Println("\n\nfindResult", err)
 	if err != nil {
 		return filter, err
 	}

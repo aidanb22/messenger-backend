@@ -9,43 +9,36 @@ import (
 )
 
 // GroupService is used by the app to manage all group related controllers and functionality
-type GroupService struct {
+type GroupMembershipService struct {
 	collection DBCollection
 	db         DBClient
-	handler    *DBHandler[*groupModel]
+	handler    *DBHandler[*groupMembershipModel]
 }
 
 // NewGroupService is an exported function used to initialize a new GroupService struct
-func NewGroupService(db DBClient, handler *DBHandler[*groupModel]) *GroupService {
-	collection := db.GetCollection("groups")
-	return &GroupService{collection, db, handler}
+func NewGroupMembershipService(db DBClient, handler *DBHandler[*groupMembershipModel]) *GroupMembershipService {
+	collection := db.GetCollection("group_memberships")
+	return &GroupMembershipService{collection, db, handler}
 }
 
 // GroupCreate is used to create a new user group
-func (p *GroupService) GroupCreate(g *models.Group) (*models.Group, error) {
-	fmt.Println("\n\nbefore off validate", g)
+func (p *GroupMembershipService) GroupMembershipCreate(g *models.GroupMembership) (*models.GroupMembership, error) {
 	err := g.Validate("create")
-	fmt.Println("\n\nkicking off validate", err)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("\n\nbefore newGroupModel", g)
-	gm, err := newGroupModel(g)
-	fmt.Println("\n\nafter newGroupModel", gm)
-
+	gm, err := newGroupMembershipModel(g)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("\n\nbefore FindOne", g)
-	_, err = p.handler.FindOne(&groupModel{Name: gm.Name})
-	fmt.Println("\n\nafter newGroupModel", err)
+	fmt.Println("\n\npreGMID", gm.GroupId, gm.UserId)
+	gRes, err := p.handler.FindOne(&groupMembershipModel{GroupId: gm.GroupId, UserId: gm.UserId})
+	fmt.Println("\n\npostGMID", gRes, err)
 
 	if err == nil {
 		return nil, errors.New("group name exists")
 	}
-	fmt.Println("\n\nbefore newGroupModel", gm)
 	gm, err = p.handler.InsertOne(gm)
-	fmt.Println("\n\nbefore newGroupModel", gm)
 	if err != nil {
 		return nil, err
 	}
@@ -53,9 +46,10 @@ func (p *GroupService) GroupCreate(g *models.Group) (*models.Group, error) {
 }
 
 // GroupsFind is used to find all group docs in a MongoDB Collection
-func (p *GroupService) GroupsFind() ([]*models.Group, error) {
-	var groups []*models.Group
-	gms, err := p.handler.FindMany(&groupModel{})
+func (p *GroupMembershipService) GroupMembershipsFind(g *models.GroupMembership) ([]*models.GroupMembership, error) {
+	var groups []*models.GroupMembership
+	//Todo: build filter using g
+	gms, err := p.handler.FindMany(&groupMembershipModel{})
 	if err != nil {
 		return groups, err
 	}
@@ -66,8 +60,8 @@ func (p *GroupService) GroupsFind() ([]*models.Group, error) {
 }
 
 // GroupFind is used to find a specific group doc
-func (p *GroupService) GroupFind(g *models.Group) (*models.Group, error) {
-	gm, err := newGroupModel(g)
+func (p *GroupMembershipService) GroupMembershipFind(g *models.GroupMembership) (*models.GroupMembership, error) {
+	gm, err := newGroupMembershipModel(g)
 	if err != nil {
 		return nil, err
 	}
@@ -79,8 +73,8 @@ func (p *GroupService) GroupFind(g *models.Group) (*models.Group, error) {
 }
 
 // GroupDelete is used to delete a group doc
-func (p *GroupService) GroupDelete(g *models.Group) (*models.Group, error) {
-	gm, err := newGroupModel(g)
+func (p *GroupMembershipService) GroupMembershipDelete(g *models.GroupMembership) (*models.GroupMembership, error) {
+	gm, err := newGroupMembershipModel(g)
 	if err != nil {
 		return nil, err
 	}
@@ -92,24 +86,18 @@ func (p *GroupService) GroupDelete(g *models.Group) (*models.Group, error) {
 }
 
 // GroupUpdate is used to update an existing group
-func (p *GroupService) GroupUpdate(g *models.Group) (*models.Group, error) {
-	var filter models.Group
+func (p *GroupMembershipService) GroupMembershipUpdate(g *models.GroupMembership) (*models.GroupMembership, error) {
+	var filter models.GroupMembership
 	err := g.Validate("create")
 	if err != nil {
 		return nil, errors.New("missing valid query filter")
 	}
 	filter.Id = g.Id
-	if g.Name != "" {
-		reDoc, err := p.handler.FindOne(&groupModel{Name: g.Name})
-		if err == nil && reDoc.toRoot().Id != filter.Id {
-			return nil, errors.New("group name exists")
-		}
-	}
-	f, err := newGroupModel(&filter)
+	f, err := newGroupMembershipModel(&filter)
 	if err != nil {
 		return nil, err
 	}
-	gm, err := newGroupModel(g)
+	gm, err := newGroupMembershipModel(g)
 	if err != nil {
 		return nil, err
 	}
@@ -122,8 +110,8 @@ func (p *GroupService) GroupUpdate(g *models.Group) (*models.Group, error) {
 }
 
 // GroupDocInsert is used to insert a group doc directly into mongodb for testing purposes
-func (p *GroupService) GroupDocInsert(g *models.Group) (*models.Group, error) {
-	insertGroup, err := newGroupModel(g)
+func (p *GroupMembershipService) GroupMembershipDocInsert(g *models.GroupMembership) (*models.GroupMembership, error) {
+	insertGroup, err := newGroupMembershipModel(g)
 	if err != nil {
 		return nil, err
 	}

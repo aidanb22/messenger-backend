@@ -16,8 +16,8 @@ type messageRouter struct {
 	tService services.MessageService
 }
 
-// NewTaskRouter is a function that initializes a new groupRouter struct
-func NewTaskRouter(router *mux.Router, a *services.TokenService, t services.MessageService) *mux.Router {
+// NewMessageRouter is a function that initializes a new groupRouter struct
+func NewMessageRouter(router *mux.Router, a *services.TokenService, t services.MessageService) *mux.Router {
 	gRouter := messageRouter{a, t}
 	router.HandleFunc("/messages", utilities.HandleOptionsRequest).Methods("OPTIONS")
 	router.HandleFunc("/messages", a.MemberTokenVerifyMiddleWare(gRouter.MessagesShow)).Methods("GET")
@@ -28,7 +28,7 @@ func NewTaskRouter(router *mux.Router, a *services.TokenService, t services.Mess
 	return router
 }
 
-// TasksShow returns all tasks to client
+// MessagesShow returns all messages to client
 func (gr *messageRouter) MessagesShow(w http.ResponseWriter, r *http.Request) {
 	authToken := r.Header.Get("Auth-Token")
 	tokenData, err := auth.DecodeJWT(authToken)
@@ -41,19 +41,19 @@ func (gr *messageRouter) MessagesShow(w http.ResponseWriter, r *http.Request) {
 	filter.ReceiverID = tokenData.UserId
 	w = utilities.SetResponseHeaders(w, "", "")
 	w.WriteHeader(http.StatusOK)
-	tasks, err := gr.tService.MessagesFind(&filter)
+	messages, err := gr.tService.MessagesFind(&filter)
 	if err != nil {
 		utilities.RespondWithError(w, http.StatusServiceUnavailable, utilities.JWTError{Message: err.Error()})
 		return
 	}
-	if err = json.NewEncoder(w).Encode(tasks); err != nil {
+	if err = json.NewEncoder(w).Encode(messagesDTO{Messages: messages}); err != nil {
 		return
 	}
 }
 
 // CreateTask from a REST Request post body
 func (gr *messageRouter) CreateMessage(w http.ResponseWriter, r *http.Request) {
-	var task models.Message
+	var message models.Message
 	body, err := io.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
 		utilities.RespondWithError(w, http.StatusBadRequest, utilities.JWTError{Message: err.Error()})
@@ -63,12 +63,12 @@ func (gr *messageRouter) CreateMessage(w http.ResponseWriter, r *http.Request) {
 		utilities.RespondWithError(w, http.StatusBadRequest, utilities.JWTError{Message: err.Error()})
 		return
 	}
-	if err = json.Unmarshal(body, &task); err != nil {
+	if err = json.Unmarshal(body, &message); err != nil {
 		utilities.RespondWithError(w, http.StatusBadRequest, utilities.JWTError{Message: err.Error()})
 		return
 	}
-	task.Id = utilities.GenerateObjectID()
-	g, err := gr.tService.MessageCreate(&task)
+	message.Id = utilities.GenerateObjectID()
+	g, err := gr.tService.MessageCreate(&message)
 	if err != nil {
 		utilities.RespondWithError(w, http.StatusServiceUnavailable, utilities.JWTError{Message: err.Error()})
 		return
@@ -81,43 +81,43 @@ func (gr *messageRouter) CreateMessage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TaskShow shows a specific task
+// MessageShow shows a specific task
 func (gr *messageRouter) MessageShow(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	taskId := vars["messageId"]
-	if taskId == "" || taskId == "000000000000000000000000" {
-		utilities.RespondWithError(w, http.StatusBadRequest, utilities.JWTError{Message: "missing taskId"})
+	messageId := vars["messageId"]
+	if messageId == "" || messageId == "000000000000000000000000" {
+		utilities.RespondWithError(w, http.StatusBadRequest, utilities.JWTError{Message: "missing messageId"})
 		return
 	}
-	task, err := gr.tService.MessageFind(&models.Message{Id: taskId})
+	message, err := gr.tService.MessageFind(&models.Message{Id: messageId})
 	if err != nil {
 		utilities.RespondWithError(w, http.StatusNotFound, utilities.JWTError{Message: err.Error()})
 		return
 	}
 	w = utilities.SetResponseHeaders(w, "", "")
 	w.WriteHeader(http.StatusOK)
-	if err = json.NewEncoder(w).Encode(task); err != nil {
+	if err = json.NewEncoder(w).Encode(message); err != nil {
 		return
 	}
 	return
 }
 
-// DeleteTask deletes a task
+// DeleteMessage deletes a message
 func (gr *messageRouter) DeleteMessage(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	taskId := vars["messageId"]
-	if taskId == "" || taskId == "000000000000000000000000" {
+	messageId := vars["messageId"]
+	if messageId == "" || messageId == "000000000000000000000000" {
 		utilities.RespondWithError(w, http.StatusBadRequest, utilities.JWTError{Message: "missing taskId"})
 		return
 	}
-	task, err := gr.tService.MessageDelete(&models.Message{Id: taskId})
+	message, err := gr.tService.MessageDelete(&models.Message{Id: messageId})
 	if err != nil {
 		utilities.RespondWithError(w, http.StatusNotFound, utilities.JWTError{Message: err.Error()})
 		return
 	}
 	w = utilities.SetResponseHeaders(w, "", "")
 	w.WriteHeader(http.StatusOK)
-	if err = json.NewEncoder(w).Encode(task); err != nil {
+	if err = json.NewEncoder(w).Encode(message); err != nil {
 		return
 	}
 	return

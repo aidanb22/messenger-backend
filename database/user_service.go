@@ -87,20 +87,13 @@ func (p *UserService) UserCreate(u *models.User) (*models.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = p.checkLinkedRecords(&groupModel{Id: um.GroupId}, &userModel{Email: um.Email}, nil)
-	if err != nil {
-		return nil, err
-	}
 	err = u.HashPassword()
 	if err != nil {
 		return nil, err
 	}
 	u.RootAdmin = false
 	if docCount == 0 {
-		u.Role = "admin"
 		u.RootAdmin = true
-	} else if u.Role != "admin" {
-		u.Role = "member"
 	}
 	um, err = newUserModel(u)
 	if err != nil {
@@ -181,10 +174,6 @@ func (p *UserService) UserUpdate(u *models.User) (*models.User, error) {
 	}
 	u.BuildUpdate(curUser.toRoot())
 	um, err := newUserModel(u)
-	if err != nil {
-		return nil, err
-	}
-	err = p.checkLinkedRecords(&groupModel{Id: um.GroupId}, &userModel{Email: um.Email}, curUser)
 	if err != nil {
 		return nil, err
 	}

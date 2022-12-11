@@ -10,40 +10,38 @@ import (
 
 // userModel structures a group BSON document to save in a users collection
 type userModel struct {
-	Id           primitive.ObjectID `bson:"_id,omitempty"`
-	Username     string             `bson:"username,omitempty"`
-	Password     string             `bson:"password,omitempty"`
-	FirstName    string             `bson:"firstname,omitempty"`
-	LastName     string             `bson:"lastname,omitempty"`
-	Email        string             `bson:"email,omitempty"`
-	Role         string             `bson:"role,omitempty"`
-	RootAdmin    bool               `bson:"root_admin,omitempty"`
-	GroupId      primitive.ObjectID `bson:"group_id,omitempty"`
-	LastModified time.Time          `bson:"last_modified,omitempty"`
-	CreatedAt    time.Time          `bson:"created_at,omitempty"`
-	DeletedAt    time.Time          `bson:"deleted_at,omitempty"`
+	Id         primitive.ObjectID `bson:"_id,omitempty"`
+	Username   string             `bson:"username,omitempty"`
+	Password   string             `bson:"password,omitempty"`
+	Email      string             `bson:"email,omitempty"`
+	Phone      string             `bson:"phone,omitempty"`
+	ImageId    string             `bson:"image_id,omitempty"`
+	RootAdmin  bool               `bson:"root_admin,omitempty"`
+	LastActive time.Time          `bson:"last_active,omitempty"`
+	CreatedAt  time.Time          `bson:"created_at,omitempty"`
+	DeletedAt  time.Time          `bson:"deleted_at,omitempty"`
 }
 
 // newUserModel initializes a new pointer to a userModel struct from a pointer to a JSON User struct
 func newUserModel(u *models.User) (um *userModel, err error) {
 	um = &userModel{
-		Username:     u.Username,
-		Password:     u.Password,
-		FirstName:    u.FirstName,
-		LastName:     u.LastName,
-		Email:        u.Email,
-		Role:         u.Role,
-		RootAdmin:    u.RootAdmin,
-		LastModified: u.LastModified,
-		CreatedAt:    u.CreatedAt,
-		DeletedAt:    u.DeletedAt,
+		Username:   u.Username,
+		Password:   u.Password,
+		Email:      u.Email,
+		Phone:      u.Phone,
+		RootAdmin:  u.RootAdmin,
+		LastActive: u.LastActive,
+		CreatedAt:  u.CreatedAt,
+		DeletedAt:  u.DeletedAt,
 	}
 	if u.Id != "" && u.Id != "000000000000000000000000" {
 		um.Id, err = primitive.ObjectIDFromHex(u.Id)
 	}
-	if u.GroupId != "" && u.GroupId != "000000000000000000000000" {
-		um.GroupId, err = primitive.ObjectIDFromHex(u.GroupId)
-	}
+	/*
+		if u.GroupId != "" && u.GroupId != "000000000000000000000000" {
+			um.GroupId, err = primitive.ObjectIDFromHex(u.GroupId)
+		}
+	*/ //Todo: figure out if we need this still
 	return
 }
 
@@ -58,26 +56,20 @@ func (u *userModel) update(doc interface{}) (err error) {
 	if len(um.Username) > 0 {
 		u.Username = um.Username
 	}
-	if len(um.FirstName) > 0 {
-		u.FirstName = um.FirstName
-	}
-	if len(um.LastName) > 0 {
-		u.LastName = um.LastName
+	if len(um.Password) > 0 {
+		u.Password = um.Password
 	}
 	if len(um.Email) > 0 {
 		u.Email = um.Email
 	}
-	if len(um.Password) > 0 {
-		u.Password = um.Password
+	if len(um.Phone) > 0 {
+		u.Phone = um.Phone
 	}
-	if len(um.GroupId.Hex()) > 0 && um.GroupId.Hex() != "000000000000000000000000" {
-		u.GroupId = um.GroupId
+	if len(um.Id.Hex()) > 0 && um.Id.Hex() != "000000000000000000000000" {
+		u.Id = um.Id
 	}
-	if len(um.Role) > 0 {
-		u.Role = um.Role
-	}
-	if !um.LastModified.IsZero() {
-		u.LastModified = um.LastModified
+	if !um.LastActive.IsZero() {
+		u.LastActive = um.LastActive
 	}
 	return
 }
@@ -113,12 +105,7 @@ func (u *userModel) match(doc interface{}) bool {
 		}
 		return false
 	}
-	if um.GroupId.Hex() != "" && um.GroupId.Hex() != "000000000000000000000000" {
-		if u.GroupId == um.GroupId {
-			return true
-		}
-		return false
-	}
+
 	return false
 }
 
@@ -130,7 +117,7 @@ func (u *userModel) getID() (id interface{}) {
 // addTimeStamps updates an userModel struct with a timestamp
 func (u *userModel) addTimeStamps(newRecord bool) {
 	currentTime := time.Now().UTC()
-	u.LastModified = currentTime
+	u.LastActive = currentTime
 	if newRecord {
 		u.CreatedAt = currentTime
 	}
@@ -167,8 +154,6 @@ func (u *userModel) toDoc() (doc bson.D, err error) {
 func (u *userModel) bsonFilter() (doc bson.D, err error) {
 	if u.Id.Hex() != "" && u.Id.Hex() != "000000000000000000000000" {
 		doc = bson.D{{"_id", u.Id}}
-	} else if u.GroupId.Hex() != "" && u.GroupId.Hex() != "000000000000000000000000" {
-		doc = bson.D{{"group_id", u.GroupId}}
 	} else if u.Email != "" {
 		doc = bson.D{{"email", u.Email}}
 	}
@@ -188,17 +173,15 @@ func (u *userModel) bsonUpdate() (doc bson.D, err error) {
 // toRoot creates and return a new pointer to a User JSON struct from a pointer to a BSON userModel
 func (u *userModel) toRoot() *models.User {
 	return &models.User{
-		Id:           u.Id.Hex(),
-		Username:     u.Username,
-		Password:     u.Password,
-		FirstName:    u.FirstName,
-		LastName:     u.LastName,
-		Email:        u.Email,
-		Role:         u.Role,
-		RootAdmin:    u.RootAdmin,
-		GroupId:      u.GroupId.Hex(),
-		LastModified: u.LastModified,
-		CreatedAt:    u.CreatedAt,
-		DeletedAt:    u.DeletedAt,
+		Id:         u.Id.Hex(),
+		Username:   u.Username,
+		Password:   u.Password,
+		Email:      u.Email,
+		Phone:      u.Phone,
+		ImageId:    u.ImageId,
+		RootAdmin:  u.RootAdmin,
+		LastActive: u.LastActive,
+		CreatedAt:  u.CreatedAt,
+		DeletedAt:  u.DeletedAt,
 	}
 }

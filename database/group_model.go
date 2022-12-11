@@ -12,7 +12,7 @@ import (
 type groupModel struct {
 	Id           primitive.ObjectID `bson:"_id,omitempty"`
 	Name         string             `bson:"name,omitempty"`
-	RootAdmin    bool               `bson:"root_admin,omitempty"`
+	Visibility   bool               `bson:"visibility,omitempty"` //invite only, visible for Member requests
 	LastModified time.Time          `bson:"last_modified,omitempty"`
 	CreatedAt    time.Time          `bson:"created_at,omitempty"`
 	DeletedAt    time.Time          `bson:"deleted_at,omitempty"`
@@ -22,7 +22,6 @@ type groupModel struct {
 func newGroupModel(g *models.Group) (gm *groupModel, err error) {
 	gm = &groupModel{
 		Name:         g.Name,
-		RootAdmin:    g.RootAdmin,
 		LastModified: g.LastModified,
 		CreatedAt:    g.CreatedAt,
 		DeletedAt:    g.DeletedAt,
@@ -143,7 +142,6 @@ func (g *groupModel) toRoot() *models.Group {
 	return &models.Group{
 		Id:           g.Id.Hex(),
 		Name:         g.Name,
-		RootAdmin:    g.RootAdmin,
 		LastModified: g.LastModified,
 		CreatedAt:    g.CreatedAt,
 		DeletedAt:    g.DeletedAt,
